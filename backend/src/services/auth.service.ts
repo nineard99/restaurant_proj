@@ -38,7 +38,7 @@ export const register = async ({
     throw new BadRequestException('Username is already taken');
   }
 
-  if (email) {
+  if (email && email.trim() !== '') {
     const existingByEmail = await prisma.user.findUnique({
       where: { email },
     });
@@ -53,7 +53,7 @@ export const register = async ({
     const user = await prisma.user.create({
       data: {
         username,
-        email: email ?? null,
+        email: email && email.trim() !== '' ? email : null,
         password: hashedPassword,
         role: roleEnum,
       },

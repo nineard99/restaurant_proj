@@ -30,3 +30,12 @@ export const getMe = async () => {
     toast.error(err?.response?.data?.message || "ไม่สามารถดึงข้อมูลผู้ใช้ได้");
   }
 };
+
+export const authorize = async () => {
+    try {
+      const res = await axios.get('/auth/authorize'); // เรียกตรวจสอบสิทธิ์
+      return res.data; // อาจเป็นข้อมูลสิทธิ์ หรือ boolean
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "ไม่สามารถตรวจสอบสิทธิ์ได้");
+    }
+};
