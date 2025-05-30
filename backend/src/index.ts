@@ -1,0 +1,51 @@
+import express from 'express';
+import authRoutes from './routes/auth.route';
+import { authenticate } from './middlewares/auth.middleware';
+import { authorize } from './middlewares/role.middleware';
+import { Role } from '@prisma/client';
+import cors from 'cors'; // ← เพิ่มตรงนี้
+import prisma from './prisma/client';
+import 'dotenv/config';
+import { errorHandler } from './exceptions/error.middleware';
+import cookieParser from 'cookie-parser';
+
+const app = express();
+const port = process.env.PORT 
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+
+  })
+);
+app.use(cookieParser());
+app.use(express.json());
+
+app.use('/auth', authRoutes);
+
+// app.get(
+//   '/secure',
+//   authenticate,
+//   authorize(Role.SUPERADMIN, Role.BRANCHMANAGER),
+//   (req, res) => {
+//     res.send(`Welcome `);
+//   }
+// );
+app.get('/users', async (req, res) => {
+    const users = await prisma.user.findMany();
+    res.json(users);
+});
+// app.post('/register', (req, res) => {
+//   console.log(req.body);
+//   res.json({ message: 'Register success' });
+// });
+app.get('/', (req, res) => {
+  res.send('Hello');
+});
+
+app.use(errorHandler);
+
+
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
