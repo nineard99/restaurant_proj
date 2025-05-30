@@ -1,18 +1,19 @@
-import { Role } from '@prisma/client';
+// src/utils/jwt.ts
 import jwt from 'jsonwebtoken';
+import { Role } from '@prisma/client';
+import 'dotenv/config';
 
 const secret = process.env.JWT_SECRET;
 if (!secret) throw new Error('JWT_SECRET not defined');
 
-
-export const generateToken = (payload: any) => {
-  return jwt.sign(payload, secret, { expiresIn: '1h' });
-};
-
 export interface AuthPayload {
-  id: number;
+  id: string;
   role: Role;
 }
+
+export const generateToken = (payload: AuthPayload): string => {
+  return jwt.sign(payload, secret, { expiresIn: '1h' });
+};
 
 export const verifyToken = (token: string): AuthPayload => {
   const decoded = jwt.verify(token, secret);
