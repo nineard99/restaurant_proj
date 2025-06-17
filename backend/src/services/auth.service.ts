@@ -2,7 +2,7 @@
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../utils/jwt';
 import prisma from '../prisma/client';
-import { Role } from '@prisma/client';
+import { GlobalRole } from '@prisma/client';
 import { BadRequestException } from '../exceptions/http-exceptions';
 
 type RegisterInput = {
@@ -24,10 +24,10 @@ export const register = async ({
 }: RegisterInput) => {
   // 1. แปลง role เป็น enum
   const roleUpper = role.toUpperCase();
-  if (!Object.values(Role).includes(roleUpper as Role)) {
+  if (!Object.values(GlobalRole).includes(roleUpper as GlobalRole)) {
     throw new BadRequestException('Invalid Role');
   }
-  const roleEnum = roleUpper as Role;
+  const roleEnum = roleUpper as GlobalRole;
 
   // 2. ตรวจสอบ username และ email ซ้ำ
   const existingByUsername = await prisma.user.findUnique({

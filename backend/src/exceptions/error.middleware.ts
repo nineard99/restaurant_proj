@@ -25,7 +25,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   // default fallback
   console.error("Uncaught error:", err);
   return void res.status(500).json({
-    message: "Internal server error",
+    message: err.message,
     errorCode: 5000,
   });
 };
