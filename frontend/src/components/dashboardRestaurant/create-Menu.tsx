@@ -22,9 +22,7 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return toast.error("กรุณากรอกชื่อเมนู");
-    if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0)
-      return toast.error("กรุณากรอกราคาที่ถูกต้อง");
-
+    if (!price.trim() || isNaN(Number(price)) || Number(price) < 0) return toast.error("กรุณากรอกราคาที่ถูกต้อง");
     setIsLoading(true);
     try {
       if (restaurantId) {
@@ -108,6 +106,7 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
                     disabled={isLoading}
                   />
                 </div>
+                
                 <div>
                   <label className="block font-medium">ราคา (บาท) *</label>
                   <input

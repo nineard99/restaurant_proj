@@ -3,6 +3,7 @@ export type Table = {
     id: string;
     name: string;
     qrCode?: string;
-    isOccupied: boolean;
+    sessionId?: string;
+    isActive: boolean;
     currentOccupancy?: number;
 };

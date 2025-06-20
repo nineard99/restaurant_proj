@@ -1,78 +1,112 @@
-import { BadRequestException, ConflictException, InternalServerErrorException, NotFoundException } from "../exceptions/http-exceptions"
-import prisma from "../prisma/client"
+import { BadRequestException, ConflictException, InternalServerErrorException, NotFoundException } from "../exceptions/http-exceptions";
+import { HttpException } from "../exceptions/root";
+import prisma from "../prisma/client";
+import crypto from "crypto";
 
 type Table = {
-    name: string
-    restaurantId: string
-}
+  name: string;
+  restaurantId: string;
+};
 
-export const createTable = async ({
-    name,
-    restaurantId
-  }: Table) => {
-    if (!name || name.trim() === '') {
-      throw new BadRequestException("name is required")
+export const createTable = async ({ name, restaurantId }: Table) => {
+  if (!name?.trim()) {
+    throw new BadRequestException("Table name is required.");
+  }
+
+  if (!restaurantId?.trim()) {
+    throw new BadRequestException("Restaurant ID is required.");
+  }
+
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id: restaurantId }
+  });
+  if (!restaurant) {
+    throw new NotFoundException("Restaurant not found.");
+  }
+
+  try {
+    const existing = await prisma.seatTable.findFirst({
+      where: { name }
+    });
+
+    if (existing) {
+      throw new ConflictException(`Table name "${name}" already exists.`);
     }
-    
-    if (!restaurantId || restaurantId.trim() === '') {
-      throw new BadRequestException("RestaurantId is required")
-    }
-    const restaurant = await prisma.restaurant.findFirst({
-        where:{
-            id : restaurantId
-        }
-      })
-      if(!restaurant) throw new NotFoundException("Not found Restaurant")
-    
-  
-    try {
-        const existing = await prisma.seatTable.findFirst({
-            where:{
-                name : name
-            }
-          })        
-        if (existing) {
-            throw new ConflictException("name already exist")
-        }
-      
-  
-      const table = await prisma.seatTable.create({
-        data: {
-          name: name,
-          isOccupied: false ,
-          restaurantId: restaurantId
-        }
-      })
-      return table
-    } catch (error: any) {
-      if (error instanceof BadRequestException || error instanceof ConflictException) {
-        throw error
+
+    const table = await prisma.seatTable.create({
+      data: {
+        name,
+        isActive: false,
+        restaurantId
       }
-      throw new InternalServerErrorException(error.message)
-    }
-}
+    });
 
+    return table;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException("Internal server error occurred.");
+  }
+};
 
-export const getAllTable= async (restaurantId: string) => {
-    try {
-      if (!restaurantId || restaurantId.trim() === '') {
-        throw new BadRequestException("restaurantId is required")
+export const getAllTable = async (restaurantId: string) => {
+  if (!restaurantId?.trim()) {
+    throw new BadRequestException("Restaurant ID is required.");
+  }
+
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id: restaurantId }
+  });
+
+  if (!restaurant) {
+    throw new NotFoundException("Restaurant not found.");
+  }
+
+  return await prisma.seatTable.findMany({
+    where: { restaurantId }
+  });
+};
+
+export const updateActiveSeatable = async (
+  restaurantId: string,
+  tableId: string,
+  isActive: boolean,
+  currentOccupancy?: number
+) => {
+  try {
+    const seatTable = await prisma.seatTable.findFirst({
+      where: {
+        id: tableId,
+        restaurantId
       }
-      const restaurant = await prisma.restaurant.findFirst({
-        where:{
-            id : restaurantId
-        }
-      })
-      if(!restaurant) throw new NotFoundException("Not found Restaurant")
-    
-      const table = await prisma.seatTable.findMany({
-        where: {
-            restaurantId: restaurantId
-        },
-      });
-      
-      return table
-    } catch (error) {
-      throw error;
+    });
+
+    if (!seatTable) {
+      throw new NotFoundException("Table not found in this restaurant.");
     }
+
+    let sessionId: string | null = null;
+
+    if (isActive) {
+      sessionId = crypto.randomBytes(8).toString("hex");
+    }
+
+    const updateData: any = {
+      isActive,
+      sessionId
+    };
+
+    if (typeof currentOccupancy === "number") {
+      updateData.currentOccupancy = currentOccupancy;
+    }
+
+    const updatedTable = await prisma.seatTable.update({
+      where: { id: tableId },
+      data: updateData
+    });
+
+    return updatedTable;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException("Internal server error occurred.");
+  }
 };

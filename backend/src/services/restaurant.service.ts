@@ -1,61 +1,68 @@
-import { BadRequestException, ConflictException, InternalServerErrorException, NotFoundException } from "../exceptions/http-exceptions"
-import prisma from "../prisma/client"
+import {
+  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+} from "../exceptions/http-exceptions";
+import { HttpException } from "../exceptions/root";
+import prisma from "../prisma/client";
 
 type Restaurant = {
-    name: string
-    address?: string
-    image?: string
-    ownerId: string
-}
+  name: string;
+  address?: string;
+  image?: string;
+  ownerId: string;
+};
 
 export const createRestaurant = async ({
-    name,
-    address,
-    image,
-    ownerId
-  }: Restaurant) => {
-    if (!name || name.trim() === '') {
-      throw new BadRequestException("Restaurant name is required")
-    }
-    if (!ownerId || ownerId.trim() === '') {
-      throw new BadRequestException("Owner ID is required")
-    }
-  
-    try {
-      const existing = await prisma.restaurant.findFirst({
-        where: { name: name }
-      })
-      if (existing) {
-        throw new ConflictException("Restaurant with this name already exists")
-      }
-  
-      // สร้างร้านอาหาร พร้อมความสัมพันธ์กับ user (owner)
-      const restaurant = await prisma.restaurant.create({
-        data: {
-          name: name,
-          address: address ?? null,
-          image: image ?? null,
-          users: {
-            create: {
-              userId: ownerId,
-              role: 'OWNER',
-            }
-          }
-        },
-        include: {
-          users: true
-        }
-      })
-      return restaurant
-    } catch (error: any) {
-      // กรณี error จาก prisma หรืออื่นๆ
-      if (error instanceof BadRequestException || error instanceof ConflictException) {
-        throw error
-      }
-      throw new InternalServerErrorException(error.message)
-    }
-}
+  name,
+  address,
+  image,
+  ownerId,
+}: Restaurant) => {
+  if (!name || name.trim() === "") {
+    throw new BadRequestException("Restaurant name is required.");
+  }
+  if (!ownerId || ownerId.trim() === "") {
+    throw new BadRequestException("Owner ID is required.");
+  }
 
+  try {
+    const existing = await prisma.restaurant.findFirst({
+      where: { name: name },
+    });
+    if (existing) {
+      throw new ConflictException(
+        "A restaurant with this name already exists. Please choose a different name."
+      );
+    }
+
+    // Create restaurant with owner relationship
+    const restaurant = await prisma.restaurant.create({
+      data: {
+        name: name,
+        address: address ?? null,
+        image: image ?? null,
+        users: {
+          create: {
+            userId: ownerId,
+            role: "OWNER",
+          },
+        },
+      },
+      include: {
+        users: true,
+      },
+    });
+
+    return restaurant;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An unexpected error occurred while creating the restaurant."
+    );
+  }
+};
 
 export const getRestaurantById = async (restaurantId: string) => {
   try {
@@ -64,22 +71,24 @@ export const getRestaurantById = async (restaurantId: string) => {
     });
 
     if (!restaurant) {
-      throw new NotFoundException('Restaurant not found');
+      throw new NotFoundException("Restaurant not found.");
     }
 
     return restaurant;
-  } catch (error) {
-    throw new InternalServerErrorException;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An error occurred while retrieving the restaurant."
+    );
   }
-
-}
+};
 
 export const getAllRestaurantByUserId = async (userId: string) => {
+  if (!userId || userId.trim() === "") {
+    throw new BadRequestException("User ID is required.");
+  }
+
   try {
-    if (!userId || userId.trim() === '') {
-      throw new BadRequestException("User ID is required")
-    }
-  
     const restaurants = await prisma.restaurantUser.findMany({
       where: {
         userId: userId,
@@ -88,19 +97,22 @@ export const getAllRestaurantByUserId = async (userId: string) => {
         restaurant: true,
       },
     });
-    
+
     return restaurants.map((ele) => ({
       restaurant: ele.restaurant,
       role: ele.role,
     }));
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An error occurred while retrieving user's restaurants."
+    );
   }
 };
 
 export const deleteRestaurantById = async (restaurantId: string) => {
   if (!restaurantId || restaurantId.trim() === "") {
-    throw new BadRequestException("Restaurant ID is required");
+    throw new BadRequestException("Restaurant ID is required.");
   }
 
   try {
@@ -109,53 +121,23 @@ export const deleteRestaurantById = async (restaurantId: string) => {
     });
 
     if (!existing) {
-      throw new NotFoundException("Restaurant not found");
+      throw new NotFoundException("Restaurant not found.");
     }
 
-    // 1. ลบ OrderItem ทั้งหมดของ Restaurant
-    await prisma.orderItem.deleteMany({
-      where: {
-        order: {
-          restaurantId: restaurantId,
-        },
-      },
+    await prisma.$transaction(async (prisma) => {
+      await prisma.orderItem.deleteMany({ where: { order: { restaurantId } } });
+      await prisma.orders.deleteMany({ where: { restaurantId } });
+      await prisma.menuItem.deleteMany({ where: { restaurantId } });
+      await prisma.seatTable.deleteMany({ where: { restaurantId } });
+      await prisma.restaurantUser.deleteMany({ where: { restaurantId } });
+      await prisma.restaurant.delete({ where: { id: restaurantId } });
     });
 
-    // 2. ลบ Order ทั้งหมดของ Restaurant
-    await prisma.order.deleteMany({
-      where: {
-        restaurantId: restaurantId,
-      },
-    });
-
-    // 3. ลบ MenuItem ของร้านนี้
-    await prisma.menuItem.deleteMany({
-      where: {
-        restaurantId: restaurantId,
-      },
-    });
-
-    // 4. ลบ Table ของร้านนี้
-    await prisma.seatTable.deleteMany({
-      where: {
-        restaurantId: restaurantId,
-      },
-    });
-
-    // 5. ลบความสัมพันธ์ RestaurantUser
-    await prisma.restaurantUser.deleteMany({
-      where: {
-        restaurantId: restaurantId,
-      },
-    });
-
-    // 6. ลบร้านอาหาร
-    await prisma.restaurant.delete({
-      where: { id: restaurantId },
-    });
-
-    return { message: "Restaurant deleted successfully" };
+    return { message: "Restaurant deleted successfully." };
   } catch (error: any) {
-    throw new InternalServerErrorException(error.message);
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An error occurred while deleting the restaurant."
+    );
   }
 };

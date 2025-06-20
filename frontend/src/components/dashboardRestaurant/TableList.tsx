@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Table } from "@/types/table";
 import FormTable from "./FormTable";
+import { updateActiveTable } from "@/services/tableService";
+import Link from "next/link";
 
 interface TableListProps {
   tableList: Array<Table>;
@@ -14,29 +16,43 @@ export default function TableList({
   restaurantId,
   onChange,
 }: TableListProps) {
-//   const [tables, setTables] = useState<Table[]>(tableList);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [occupancyInput, setOccupancyInput] = useState<number | "">("");
+  const [viewMode, setViewMode] = useState<"edit" | "qr" | null>(null);
 
   const handleOpenPopup = (table: Table) => {
     setSelectedTable(table);
     setOccupancyInput(table.currentOccupancy ?? "");
+    setViewMode("edit");
   };
 
-  const handleSave = () => {
+  const handleOpenQr = (table: Table) => {
+    setSelectedTable(table);
+    setViewMode("qr");
+  };
+
+  const handleSave = async () => {
     if (!selectedTable) return;
+
+    await updateActiveTable({
+      restaurantId,
+      tableId: selectedTable.id,
+      isActive: selectedTable.isActive,
+      currentOccupancy: occupancyInput === "" ? undefined : Number(occupancyInput),
+    });
 
     setSelectedTable(null);
     setOccupancyInput("");
+    setViewMode(null);
     onChange();
   };
 
   const handleClose = () => {
     setSelectedTable(null);
     setOccupancyInput("");
+    setViewMode(null);
   };
 
-  // Mock QR code image (replace with actual QR generator later)
   const QRCodeMock = () => (
     <div className="w-40 h-40 bg-gray-200 flex justify-center items-center rounded-md mx-auto mb-4">
       <span className="text-gray-500">QR Code</span>
@@ -54,8 +70,7 @@ export default function TableList({
         <div className="p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-              <span className="text-3xl">🪑</span>
-              <span>โต๊ะลูกค้า</span>
+              <span>Table</span>
             </h2>
           </div>
 
@@ -67,12 +82,18 @@ export default function TableList({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index + 1.2 }}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 transition-all duration-300 cursor-pointer"
-                onClick={() => handleOpenPopup(table)}
+                onClick={() => {
+                  if (table.isActive) {
+                    handleOpenQr(table);
+                  } else {
+                    handleOpenPopup(table);
+                  }
+                }}
               >
                 <div className="flex items-center space-x-3">
                   <motion.div
                     animate={{
-                      backgroundColor: table.isOccupied
+                      backgroundColor: table.isActive
                         ? ["#10b981", "#06d6a0", "#10b981"]
                         : ["#ef4444", "#f87171", "#ef4444"],
                     }}
@@ -83,12 +104,12 @@ export default function TableList({
                 </div>
                 <div
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    table.isOccupied
+                    table.isActive
                       ? "bg-green-100 text-green-800 border border-green-200"
                       : "bg-red-100 text-red-800 border border-red-200"
                   }`}
                 >
-                  {table.isOccupied ? "Active" : "InActive"}
+                  {table.isActive ? "Active" : "InActive"}
                 </div>
               </motion.div>
             ))}
@@ -98,8 +119,7 @@ export default function TableList({
         </div>
       </motion.section>
 
-      {/* Popup */}
-      {selectedTable && (
+      {selectedTable && viewMode && (
         <div
           className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50"
           onClick={handleClose}
@@ -108,11 +128,17 @@ export default function TableList({
             className="bg-white p-6 rounded-xl shadow-lg w-80 max-w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ถ้าโต๊ะ active ให้โชว์รายละเอียดและ QR code */}
-            {selectedTable.isOccupied ? (
+            {viewMode === "qr" ? (
               <>
-                <h3 className="text-lg font-bold mb-2">รายละเอียดโต๊ะ {selectedTable.name}</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  รายละเอียดโต๊ะ {selectedTable.name}
+                </h3>
                 <QRCodeMock />
+                <Link href={`/order/${restaurantId}/${selectedTable.sessionId}`}>
+                  <p className="text-blue-500 underline cursor-pointer">
+                      {selectedTable.sessionId}
+                    </p>
+                </Link>
                 <p className="mb-2">
                   จำนวนคน:{" "}
                   {selectedTable.currentOccupancy !== undefined
@@ -134,17 +160,19 @@ export default function TableList({
               </>
             ) : (
               <>
-                <h3 className="text-lg font-bold mb-4">ตั้งค่าโต๊ะ {selectedTable.name}</h3>
+                <h3 className="text-lg font-bold mb-4">ตั้งค่า {selectedTable.name}</h3>
 
                 <div className="mb-4">
-                  <label className="block mb-1 font-semibold">ตั้งโต๊ะเป็น Active</label>
+                  <label className="block mb-1 font-semibold">
+                    Set Status ( Active / InActive )
+                  </label>
                   <input
                     type="checkbox"
-                    checked={selectedTable.isOccupied}
+                    checked={selectedTable.isActive}
                     onChange={(e) => {
                       setSelectedTable({
                         ...selectedTable,
-                        isOccupied: e.target.checked,
+                        isActive: e.target.checked,
                       });
                       if (!e.target.checked) setOccupancyInput("");
                     }}
@@ -152,7 +180,7 @@ export default function TableList({
                 </div>
 
                 <div className="mb-4">
-                  <label className="block mb-1 font-semibold">จำนวนคน (ถ้ามี)</label>
+                  <label className="block mb-1 font-semibold">จำนวนคน (Optional)</label>
                   <input
                     type="number"
                     min={1}
@@ -160,9 +188,9 @@ export default function TableList({
                     onChange={(e) =>
                       setOccupancyInput(e.target.value === "" ? "" : Number(e.target.value))
                     }
-                    disabled={!selectedTable.isOccupied}
+                    disabled={!selectedTable.isActive}
                     className="w-full border border-gray-300 rounded px-3 py-2"
-                    placeholder="ไม่ใส่ก็ได้"
+                    placeholder="Optional"
                   />
                 </div>
 

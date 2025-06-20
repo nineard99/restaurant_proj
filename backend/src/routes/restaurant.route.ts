@@ -9,5 +9,4 @@ router.post("/create", [authenticate], createRestaurantController);
 router.get("/:restaurantId" ,[authenticate],authorizeRestaurantRole("OWNER") , findRestaurantByIdController);
 router.get("/" ,[authenticate] , getAllRestaurantByUserIdController);
 router.delete("/:restaurantId" , [authenticate], deleteRestaurantByIdController);
-
 export default router;

@@ -10,6 +10,7 @@ import { getAllTable } from "@/services/tableService";
 import { MenuItem } from "@/types/menu";
 import { Table } from "@/types/table";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -43,8 +44,9 @@ export default function Dashboard({ params }: Props) {
     const tablemapped = table.map((item: any) => ({
       id: item.id,
       name: item.name,
+      sessionId: item.sessionId,
       qrCode: item.qrCode,
-      isOccupied: item.isOccupied,
+      isActive: item.isActive,
       currentOccupancy: item.currentOccupancy
     }));
     setMenuItems(mapped)
@@ -127,6 +129,15 @@ export default function Dashboard({ params }: Props) {
               >
                 🗑️ ลบร้านอาหาร
               </motion.button>
+              <Link href={`/dashboard/${id}/order`}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-2 rounded-xl border border-gray-500 text-gray-900 bg-gray-200 hover:bg-gray-300 font-medium transition shadow-sm mt-4"
+                >
+                  📋 ดูรายการออเดอร์ทั้งหมด
+                </motion.button>
+              </Link>
             </div>
           </motion.div>
 
@@ -171,7 +182,7 @@ export default function Dashboard({ params }: Props) {
                 <span className="text-2xl">📱</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                {tables.filter(t => t.isOccupied).length}
+                {tables.filter(t => t.isActive).length}
               </h3>
               <p className="text-gray-600">QR Code ใช้งานได้</p>
             </div>
@@ -190,6 +201,7 @@ export default function Dashboard({ params }: Props) {
             {/* Tables Section */}
             <TableList tableList={tables} onChange={fetchData} restaurantId={id} />
           </motion.div>
+          
 
           {/* Bottom decorative section */}
           <motion.div

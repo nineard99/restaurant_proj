@@ -23,3 +23,22 @@ export const createTable = async(data : {
         toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
     }
 }
+
+export const updateActiveTable =async (data:{
+    restaurantId: string,
+    tableId: string,
+    isActive: boolean,
+    currentOccupancy?: Number
+}) => {
+    const { restaurantId , tableId , isActive ,currentOccupancy} = data
+    try{
+        if (!isActive && currentOccupancy != null) {
+            throw new Error("If table is not active, it can't have currentOccupancy");
+        }        
+        const res = await axios.patch(`${restaurantId}/table/${tableId}`,{ isActive,currentOccupancy })
+        return res.data
+    }catch(err:any){
+        toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
+    }
+    
+}

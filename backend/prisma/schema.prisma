@@ -28,7 +28,7 @@ model Restaurant {
   users       RestaurantUser[]  // ผู้ใช้ที่เกี่ยวข้องกับร้านนี้ พร้อมบทบาท
   tables      SeatTable[]
   menuItems   MenuItem[]
-  orders      Order[]
+  orders      Orders[]
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -51,8 +51,9 @@ model SeatTable {
   qrCode       String?        // สำหรับ QR code โต๊ะ
   restaurant   Restaurant    @relation(fields: [restaurantId], references: [id])
   restaurantId String
-  orders       Order[]
-  isOccupied   Boolean       @default(false)
+  orders       Orders[]
+  sessionId    String?
+  isActive   Boolean       @default(false)
   currentOccupancy Int?
 }
 
@@ -67,7 +68,7 @@ model MenuItem {
   orderItems   OrderItem[]
 }
 
-model Order {
+model Orders {
   id           String       @id @default(cuid())
   table        SeatTable        @relation(fields: [tableId], references: [id])
   tableId      String
@@ -81,7 +82,7 @@ model Order {
 
 model OrderItem {
   id           String      @id @default(cuid())
-  order        Order       @relation(fields: [orderId], references: [id])
+  order        Orders       @relation(fields: [orderId], references: [id])
   orderId      String
   menuItem     MenuItem    @relation(fields: [menuItemId], references: [id])
   menuItemId   String

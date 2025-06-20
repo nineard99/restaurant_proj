@@ -42,3 +42,4 @@ export const deleteRestaurantByIdController =async (req:Request , res:Response) 
   const {restaurantId} = req.params
   res.status(200).json(await deleteRestaurantById(restaurantId))
 }
+

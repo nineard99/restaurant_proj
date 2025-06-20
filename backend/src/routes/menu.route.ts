@@ -6,7 +6,7 @@ import { createMenuController, deleteMenuItemController, getAllMenuController } 
 
 const router = Router({ mergeParams: true }); 
 
-router.get('/' ,[authenticate],authorizeRestaurantRole("OWNER"),getAllMenuController)
+router.get('/' ,getAllMenuController)
 // router.get('/:menuId' ,[authenticate],authorizeRestaurantRole("OWNER"), getAllMenuController)
 router.post('/', [authenticate],authorizeRestaurantRole("OWNER"),  createMenuController)
 router.delete('/:menuId' , [authenticate],authorizeRestaurantRole("OWNER"), deleteMenuItemController)

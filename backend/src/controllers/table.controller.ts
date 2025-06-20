@@ -1,5 +1,5 @@
 import { UnauthorizedException } from "../exceptions/http-exceptions";
-import { createTable, getAllTable } from "../services/table.service";
+import { createTable, getAllTable, updateActiveSeatable } from "../services/table.service";
 
 
 import { Request, Response } from "express";
@@ -28,3 +28,9 @@ export const getAllTableController = async (req:Request , res: Response) => {
   
 }
 
+export const updateActiveSeatableController =async (req:Request , res:Response) => {
+  const { restaurantId , tableId } = req.params
+  const { isActive , currentOccupancy} = req.body;
+  const updateTable = await updateActiveSeatable(restaurantId,tableId,isActive,currentOccupancy)
+  res.json(updateTable)
+}

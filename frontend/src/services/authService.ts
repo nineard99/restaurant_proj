@@ -1,4 +1,3 @@
-import toast from "react-hot-toast"
 import axios from "./axios"
 
 export const register = async(data : {
@@ -7,10 +6,11 @@ export const register = async(data : {
     password: string
 }) => {
     try{
-        const res = await axios.post('/auth/register',data)
-        return res.data
+      const res = await axios.post('/auth/register',data)
+      return res.data
     }catch(err:any){
-        toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
+      const message = err?.response?.data?.message || err.message || "Unexpected error";
+      throw new Error(message);
     }
 }
 
@@ -19,7 +19,8 @@ export const login = async(data : { username: string , password: string}) => {
         const res = await axios.post('/auth/login',data)
         return res.data
     }catch(err:any){
-        toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
+      const message = err?.response?.data?.message || err.message || "Unexpected error";
+      throw new Error(message);
     }
 }
 
@@ -28,7 +29,8 @@ export const logoutService = async() => {
       const res = await axios.post('/auth/logout')
       return res.data
   }catch(err:any){
-      toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
+    const message = err?.response?.data?.message || err.message || "Unexpected error";
+    throw new Error(message);
   }
 }
 
@@ -37,7 +39,8 @@ export const getMe = async () => {
     const res = await axios.get("/auth/me"); // cookie ถูกแนบให้อัตโนมัติ
     return res.data;
   } catch (err: any) {
-    // throw Error(err?.response?.data?.message || "ไม่สามารถดึงข้อมูลผู้ใช้ได้");
+    const message = err?.response?.data?.message || err.message || "Unexpected error";
+    throw new Error(message);
   }
 };
 
@@ -46,6 +49,7 @@ export const authorize = async () => {
       const res = await axios.get('/auth/authorize'); // เรียกตรวจสอบสิทธิ์
       return res.data; // อาจเป็นข้อมูลสิทธิ์ หรือ boolean
     } catch (err: any) {
-      // toast.error(err?.response?.data?.message || "ไม่สามารถตรวจสอบสิทธิ์ได้");
+      const message = err?.response?.data?.message || err.message || "Unexpected error";
+      throw new Error(message);
     }
 };
