@@ -1,9 +1,7 @@
 import express from 'express';
-import authRoutes from './routes/auth.route';
-import { authenticate } from './middlewares/auth.middleware';
-import { authorize } from './middlewares/role.middleware';
-import { Role } from '@prisma/client';
-import cors from 'cors'; // ← เพิ่มตรงนี้
+
+import indexRoute from './routes/index';
+import cors from 'cors';
 import prisma from './prisma/client';
 import 'dotenv/config';
 import { errorHandler } from './exceptions/error.middleware';
@@ -21,29 +19,14 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-app.use('/auth', authRoutes);
+app.use('/',[errorHandler],indexRoute)
 
-// app.get(
-//   '/secure',
-//   authenticate,
-//   authorize(Role.SUPERADMIN, Role.BRANCHMANAGER),
-//   (req, res) => {
-//     res.send(`Welcome `);
-//   }
-// );
-app.get('/users', async (req, res) => {
-    const users = await prisma.user.findMany();
-    res.json(users);
-});
-// app.post('/register', (req, res) => {
-//   console.log(req.body);
-//   res.json({ message: 'Register success' });
+// app.get('/users', async (req, res) => {
+//     const users = await prisma.user.findMany();
+//     res.json(users);
 // });
-app.get('/', (req, res) => {
-  res.send('Hello');
-});
 
-app.use(errorHandler);
+
 
 
 app.listen(port, () => {

@@ -30,6 +30,16 @@ export const loginController = async (req: Request, res: Response) => {
   res.json({ user });
 };
 
+export const logoutController = async(req:Request, res:Response) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  res.json({message:'Logged out successfully'});
+};
+
+
 export const meController = async (req: Request, res: Response) => {
   res.json(req.user);
 };

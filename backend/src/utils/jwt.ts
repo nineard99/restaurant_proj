@@ -1,14 +1,14 @@
 // src/utils/jwt.ts
 import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
 import 'dotenv/config';
+import { GlobalRole } from '@prisma/client';
 
 const secret = process.env.JWT_SECRET;
 if (!secret) throw new Error('JWT_SECRET not defined');
 
 export interface AuthPayload {
   id: string;
-  role: Role;
+  role: GlobalRole;
 }
 
 export const generateToken = (payload: AuthPayload): string => {

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { Toaster } from "react-hot-toast";
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -10,7 +11,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#f8f4ee]">
+      <body>
         <Toaster />
         {children}
       </body>
