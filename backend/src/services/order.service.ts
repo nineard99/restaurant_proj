@@ -1,4 +1,4 @@
-import { Orders } from "@prisma/client";
+import { OrderStatus, Orders } from "@prisma/client";
 import {
   BadRequestException,
   ConflictException,
@@ -167,6 +167,45 @@ export const getAllOrder = async (restaurantId: string) => {
     if (error instanceof HttpException) throw error;
     throw new InternalServerErrorException(
       "An error occurred while retrieving all orders."
+    );
+  }
+};
+
+export const updateOrderStatus = async (
+  restaurantId: string,
+  orderId: string,
+  newStatus: OrderStatus
+) => {
+  if (!orderId || orderId.trim() === "") {
+    throw new BadRequestException("Order ID is required.");
+  }
+
+  const validStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
+  if (!validStatuses.includes(newStatus)) {
+    throw new BadRequestException("Invalid order status.");
+  }
+
+  try {
+    const existingOrder = await prisma.orders.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!existingOrder) {
+      throw new NotFoundException("Order not found.");
+    }
+    if (!Object.values(OrderStatus).includes(newStatus as OrderStatus)) {
+      throw new BadRequestException('Invalid Status provided.');
+    }
+    const status = newStatus as OrderStatus;
+    const updatedOrder = await prisma.orders.update({
+      where: { id: orderId , restaurantId},
+      data: { status: status },
+    });
+    return updatedOrder;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An error occurred while updating order status."
     );
   }
 };

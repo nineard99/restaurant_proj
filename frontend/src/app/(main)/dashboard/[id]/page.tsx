@@ -1,11 +1,12 @@
 "use client";
 import Loading from "@/components/Loading";
+import DashboardOptions from "@/components/dashboardRestaurant/DashboardOption";
 import MenuList from "@/components/dashboardRestaurant/MenuList";
 import TableList from "@/components/dashboardRestaurant/TableList";
 import AddMenuComponent from "@/components/dashboardRestaurant/create-Menu";
 import { authorize } from "@/services/authService";
 import { getMenu } from "@/services/menuService";
-import { deleteRestaurantById, getRestaurantById } from "@/services/restaurantService";
+import { deleteRestaurantById, editRestaurantName, getRestaurantById } from "@/services/restaurantService";
 import { getAllTable } from "@/services/tableService";
 import { MenuItem } from "@/types/menu";
 import { Table } from "@/types/table";
@@ -32,6 +33,7 @@ export default function Dashboard({ params }: Props) {
     fetchData();
   }
 
+  
   const fetchData = async () => {
     const menu = await getMenu(id);
     const table = await getAllTable(id)
@@ -39,7 +41,8 @@ export default function Dashboard({ params }: Props) {
       id: item.id,
       name: item.name,
       description: item.description,
-      price: item.price
+      price: item.price,
+      image: item.image
     }));
     const tablemapped = table.map((item: any) => ({
       id: item.id,
@@ -53,10 +56,14 @@ export default function Dashboard({ params }: Props) {
     setTables(tablemapped)
   };
 
+  const onEditRestaurantName = async(newName: string) => {
+    await editRestaurantName(id,newName)
+    init()
+  }
+
   useEffect(() => {
     fetchData();
   }, []);
-  
   
   
   const handledelete = async() => {
@@ -66,16 +73,17 @@ export default function Dashboard({ params }: Props) {
     router.push('/home')
   };
 
-  useEffect(() => {
-    const init = async () => {
-      const res = await getRestaurantById(id);         
-      if (res) {         
-      setRestaurant(res);       
+  const init = async () => {
+    const res = await getRestaurantById(id);         
+    if (res) {         
+    setRestaurant(res);       
     } else {         
       router.push("/login");       
     }       
     setLoading(false);     
   }     
+  useEffect(() => {
+    
   init();   
   }, [id, router]);
 
@@ -107,35 +115,27 @@ export default function Dashboard({ params }: Props) {
                   transition={{ delay: 0.3, duration: 0.8 }}
                   className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent"
                 />
+                
               </h1>
+              
             </div>
+            <DashboardOptions
+                restaurantId={id}
+                restaurantName={restaurant?.name || ""}
+                onUpdateName={onEditRestaurantName}
+                onDelete={handledelete}
+              />
 
             {/* ปุ่มในธีมขาว-ดำ-เทา */}
             <div className="mt-6 flex justify-center gap-4 flex-wrap">
-              <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: "#f3f4f6" }} // hover เทาอ่อน
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2 rounded-xl border border-gray-400 text-gray-800 bg-white hover:bg-gray-100 font-medium transition shadow-sm"
-                onClick={() => alert("TODO: Edit restaurant name")}
-              >
-                ✏️ แก้ไขชื่อร้าน
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: "#e5e7eb" }} // hover เทากลาง
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2 rounded-xl border border-gray-500 text-gray-900 bg-gray-200 hover:bg-gray-300 font-medium transition shadow-sm"
-                onClick={handledelete}
-              >
-                🗑️ ลบร้านอาหาร
-              </motion.button>
+            
               <Link href={`/dashboard/${id}/order`}>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-6 py-2 rounded-xl border border-gray-500 text-gray-900 bg-gray-200 hover:bg-gray-300 font-medium transition shadow-sm mt-4"
                 >
-                  📋 ดูรายการออเดอร์ทั้งหมด
+                  All Order
                 </motion.button>
               </Link>
             </div>
@@ -158,7 +158,7 @@ export default function Dashboard({ params }: Props) {
                 <span className="text-2xl">🍽️</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900">{menuItems.length}</h3>
-              <p className="text-gray-600">รายการเมนู</p>
+              <p className="text-gray-600">MENU</p>
             </div>
 
             <div
@@ -170,7 +170,7 @@ export default function Dashboard({ params }: Props) {
                 <span className="text-2xl">🪑</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900">{tables.length}</h3>
-              <p className="text-gray-600">จำนวนโต๊ะ</p>
+              <p className="text-gray-600">Table</p>
             </div>
 
             <div
@@ -184,7 +184,7 @@ export default function Dashboard({ params }: Props) {
               <h3 className="text-2xl font-bold text-gray-900">
                 {tables.filter(t => t.isActive).length}
               </h3>
-              <p className="text-gray-600">QR Code ใช้งานได้</p>
+              <p className="text-gray-600">Active Table</p>
             </div>
           </motion.div>
 
@@ -219,7 +219,7 @@ export default function Dashboard({ params }: Props) {
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                 className="w-1 h-1 bg-gray-400 rounded-full"
               />
-              <span>ระบบจัดการร้านอาหารสมัยใหม่</span>
+              <span>Restaurant Pro</span>
               <motion.div
                 animate={{ rotate: [360, 0] }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}

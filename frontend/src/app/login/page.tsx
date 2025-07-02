@@ -1,18 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { InputField } from "@/components/auth/InputField";
+import { InputField } from "@/components/shared/InputField";
 import { User, Lock, Mail } from "lucide-react";
 import { getMe, login, register } from "@/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { FormData, LoginPayload, RegisterPayload } from "@/types/auth";
 
-type FormData = {
-  email: string;
-  password: string;
-  confirmPassword: string | null;
-  username: string;
+const validateForm = (data: FormData, isLogin: boolean): string | null => {
+  const usernameRegex = /^[a-zA-Z0-9_$%!@#]+$/;
+  const passwordRegex = /^[a-zA-Z0-9_$%!@#]+$/;
+
+  if (data.username.trim() === '') return 'Please enter a username';
+  if (!usernameRegex.test(data.username)) return 'Username can only include English letters, numbers, and _ $ %';
+
+  if (data.password.trim() === '') return 'Please enter a password';
+  if (!passwordRegex.test(data.password)) return 'Password can only include English letters, numbers, and _ $ %';
+
+  if (!isLogin && data.password !== data.confirmPassword) return 'Passwords do not match';
+
+  return null;
 };
 
 export default function AuthSystem() {
@@ -43,32 +52,31 @@ export default function AuthSystem() {
     }
     init();
   }, [router]);
+
   const handleSubmit = async () => {
     if (loading) return;
 
-    const { username, email, password, confirmPassword } = formData;
+    const errorMsg = validateForm(formData, isLogin);
+    if (errorMsg) {
+      toast.error(errorMsg);
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      if (username.trim() === '') throw new Error('กรุณากรอกชื่อผู้ใช้');
-      if (password.trim() === '') throw new Error('กรุณากรอกรหัสผ่าน');
-
-      setLoading(true);
-
       if (isLogin) {
-        await login({ username, password });
-        toast.success("เข้าสู่ระบบสำเร็จ 🎉");
+        await login({ username: formData.username, password: formData.password } as LoginPayload);
+        
+        toast.success("Login successful");
         router.push('/home');
       } else {
-        if (password !== confirmPassword) {
-          toast.error("รหัสผ่านไม่ตรงกัน");
-          return;
-        }
-        await register({ username, email, password });
-        toast.success("สมัครสมาชิกสำเร็จ 🎉");
+        await register({ email: formData.email, username: formData.username, password: formData.password } as RegisterPayload);
+        toast.success("Registration successful");
         router.push('/home');
       }
     } catch (err: any) {
-      toast.error(err?.message || "เกิดข้อผิดพลาด");
+      toast.error(err?.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -106,7 +114,7 @@ export default function AuthSystem() {
                 }`}
                 onClick={() => setIsLogin(true)}
               >
-                เข้าสู่ระบบ
+                Login
               </motion.button>
               <motion.button
                 className={`flex-1 py-3 font-semibold z-10 ${
@@ -114,17 +122,16 @@ export default function AuthSystem() {
                 }`}
                 onClick={() => setIsLogin(false)}
               >
-                สมัครสมาชิก
+                Register
               </motion.button>
             </div>
 
-            {/* ช่องกรอกข้อมูล */}
             <div className="space-y-5">
               <InputField
                 icon={User}
                 type="text"
                 name="username"
-                placeholder="ชื่อผู้ใช้"
+                placeholder="Username"
                 value={formData.username}
                 onChange={(e) =>
                   setFormData({ ...formData, username: e.target.value })
@@ -136,7 +143,7 @@ export default function AuthSystem() {
                   icon={Mail}
                   type="email"
                   name="email"
-                  placeholder="อีเมล"
+                  placeholder="Email"
                   value={formData.email ?? ""}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -148,7 +155,7 @@ export default function AuthSystem() {
                 icon={Lock}
                 type="password"
                 name="password"
-                placeholder="รหัสผ่าน"
+                placeholder="Password"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -160,7 +167,7 @@ export default function AuthSystem() {
                   icon={Lock}
                   type="password"
                   name="confirmPassword"
-                  placeholder="ยืนยันรหัสผ่าน"
+                  placeholder="ConfirmPassword"
                   value={formData.confirmPassword ?? ""}
                   onChange={(e) =>
                     setFormData({ ...formData, confirmPassword: e.target.value })
@@ -168,7 +175,6 @@ export default function AuthSystem() {
                 />
               )}
 
-              {/* ปุ่มส่ง */}
               <button
                 onClick={handleSubmit}
                 disabled={loading}
@@ -180,11 +186,11 @@ export default function AuthSystem() {
               >
                 {loading
                   ? isLogin
-                    ? "กำลังเข้าสู่ระบบ..."
-                    : "กำลังสมัครสมาชิก..."
+                    ? "Logging in..."
+                    : "Registering..."
                   : isLogin
-                  ? "เข้าสู่ระบบ"
-                  : "สมัครสมาชิก"}
+                  ? "Login"
+                  : "Register"}
               </button>
             </div>
           </motion.div>

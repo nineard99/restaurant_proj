@@ -34,3 +34,12 @@ export const getAllOrder =async (restaurantId:string) => {
   }
   
 }
+
+export const updateStatusOrder = async(restaurantId:string , orderId:string , newStatus: string) => {
+  try {
+    const res = await axios.patch(`${restaurantId}/order/${orderId}/status`,{newStatus});
+    return res.data;
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด");
+  }
+}

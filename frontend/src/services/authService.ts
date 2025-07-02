@@ -35,13 +35,8 @@ export const logoutService = async() => {
 }
 
 export const getMe = async () => {
-  try {
-    const res = await axios.get("/auth/me"); // cookie ถูกแนบให้อัตโนมัติ
-    return res.data;
-  } catch (err: any) {
-    const message = err?.response?.data?.message || err.message || "Unexpected error";
-    throw new Error(message);
-  }
+  const res = await axios.get("/auth/me"); 
+  return res.data;
 };
 
 export const authorize = async () => {

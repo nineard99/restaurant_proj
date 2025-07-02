@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createOrder, getAllOrder, getAllOrderBySession } from "../services/order.service";
+import { createOrder, getAllOrder, getAllOrderBySession, updateOrderStatus } from "../services/order.service";
 
 export const createOrderController = async(req:Request,res:Response) => {
     const { orderItems  }  = req.body;
@@ -19,3 +19,12 @@ export const getAllOrderController =async (req:Request,res:Response) => {
     const order = await getAllOrder(restaurantId)
     res.json(order)
 }
+
+export const updateOrderStatusController =async (req:Request , res:Response) => {
+    const {newStatus} = req.body
+    const {orderId ,restaurantId} = req.params
+    console.log(newStatus)
+    const order = await updateOrderStatus(restaurantId,orderId,newStatus);
+    res.status(200).json(order)
+}
+  

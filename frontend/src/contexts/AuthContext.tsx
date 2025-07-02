@@ -28,12 +28,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     async function check() {
-      const user = await getMe();
-      if (!user) {
+      try{
+        const user = await getMe();
+        if (!user) {
+          router.push("/login");
+        } else {
+          setUser(user);
+          setIsLoggedIn(true);
+        }
+      }catch(er: any){
         router.push("/login");
-      } else {
-        setUser(user);
-        setIsLoggedIn(true);
       }
     }
     check();

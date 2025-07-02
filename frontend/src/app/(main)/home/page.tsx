@@ -2,17 +2,12 @@
 import Loading from "@/components/Loading";
 import RestaurantCard from "@/components/restaurantCard";
 import { getallRestaurantByUser } from "@/services/restaurantService";
+import { Restaurant } from "@/types/restaurant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-interface Restaurant {
-  id: string;
-  name: string;
-  createdAt: string;
-  role: string;
-}
 
 export default function MyRestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -20,31 +15,24 @@ export default function MyRestaurantsPage() {
   const router = useRouter();
   
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getallRestaurantByUser();
-        const mapped = data.map((item: any) => ({
-          id: item.restaurant.id,
-          name: item.restaurant.name,
-          createdAt: item.restaurant.createdAt,
-          role: item.role,
-        }));
-        setRestaurants(mapped);
-      } catch (error: any) {
-        toast.error("Failed to load restaurants");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-
+    fetchRestaurants();
   }, []);
 
-
-
-
+  const fetchRestaurants = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getallRestaurantByUser();
+      if (!Array.isArray(data)) {
+        toast.error("Invalid data received from server");
+        return;
+      }
+      setRestaurants(data);
+    } catch {
+      toast.error("Failed to load restaurants");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) return <Loading />;
 
@@ -73,9 +61,6 @@ export default function MyRestaurantsPage() {
             />
           ))
           }
-
-
-          {/* ปุ่มสร้างร้านใหม่ */}
           <div
             onClick={() => router.push('/create-restaurant')}
             className="group hover:scale-105 relative bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-8 cursor-pointer transition-all duration-700 overflow-hidden border border-gray-700/50 flex flex-col items-center justify-center text-white"

@@ -37,38 +37,40 @@ export default function MenuList({
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.8, duration: 0.6 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+        className="bg-white rounded-2xl shadow-lg border border-gray-200 max-h-[80vh] flex flex-col overflow-hidden"
       >
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
+        {/* ส่วนหัวข้อ (Sticky Top) */}
+        <div className="p-6 border-b bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-              <span className="text-3xl">🍽️</span>
-              <span>เมนูอาหาร</span>
+              <span>Menu</span>
             </h2>
           </div>
+        </div>
 
-          <div className="space-y-4 mb-6">
-            {menuList.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index + 1 }}
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="cursor-pointer flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 transition-all duration-300"
-                onClick={() => setSelectedItem(item)}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full" />
-                  <span className="font-medium text-gray-900">{item.name}</span>
-                </div>
-                <span className="text-lg font-bold text-green-600">
-                  ฿{item.price}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+        {/* ส่วน scroll ได้ */}
+        <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+          {menuList.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index + 1 }}
+              whileHover={{ scale: 1.02, x: 5 }}
+              className="cursor-pointer flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 transition-all duration-300"
+              onClick={() => setSelectedItem(item)}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-400 rounded-full" />
+                <span className="font-medium text-gray-900">{item.name}</span>
+              </div>
+              <span className="text-lg font-bold text-green-600">฿{item.price}</span>
+            </motion.div>
+          ))}
+        </div>
 
+        {/* ส่วนล่าง (Sticky Bottom) */}
+        <div className="p-6 border-t bg-white sticky bottom-0 z-10">
           <AddMenuComponent
             addMenuSuccess={onAddSuccess}
             restaurantId={restaurantId}
@@ -76,8 +78,11 @@ export default function MenuList({
         </div>
       </motion.section>
 
+
+
       {/* Popup modal */}
       <AnimatePresence>
+        
         {selectedItem && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -97,7 +102,7 @@ export default function MenuList({
                 {selectedItem.name}
               </h3>
               <img
-                src="/food.webp" // เปลี่ยน path ตามจริง หรือ selectedItem.image ถ้ามี
+                src={ selectedItem.image|| "/no-pic.png"} // เปลี่ยน path ตามจริง หรือ selectedItem.image ถ้ามี
                 alt={selectedItem.name}
                 className="rounded-lg mb-4 max-h-60 object-cover w-full"
               />

@@ -98,14 +98,14 @@ export default function FormTable( {addSuccess,restaurantId} : AddComponentProps
                     className="flex-1 border border-gray-300 py-3 rounded-lg hover:bg-gray-100"
                     disabled={isLoading}
                   >
-                    ยกเลิก
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="flex-1 bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800"
                     disabled={isLoading}
                   >
-                    {isLoading ? "กำลังเพิ่ม..." : "Add Table Success"}
+                    {isLoading ? "กำลังเพิ่ม..." : "Add Table"}
                   </button>
                 </div>
               </form>

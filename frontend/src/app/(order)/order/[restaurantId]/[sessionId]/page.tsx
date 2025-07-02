@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 
 
 
-export default function page() {
+export default function Page() {
   const params = useParams();
   const restaurantId = params?.restaurantId;
   const sessionId = params?.sessionId;
@@ -23,7 +23,6 @@ export default function page() {
 
   useEffect(() => {
     fetchData();
-
   }, []);
 
   const fetchData = async () => {
