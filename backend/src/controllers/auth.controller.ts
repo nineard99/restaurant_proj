@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
+import { UnauthorizedException } from '../exceptions/http-exceptions';
+import prisma from '../prisma/client';
 // import '../types/express';
 export const registerController = async (req: Request, res: Response) => {
   const { username, email, password, role } = req.body;
@@ -41,5 +43,30 @@ export const logoutController = async(req:Request, res:Response) => {
 
 
 export const meController = async (req: Request, res: Response) => {
-  res.json(req.user);
+  const user = req.user;
+
+  if (!user) {
+    throw new UnauthorizedException()
+  }
+
+  const restaurantLinks = await prisma.restaurantUser.findMany({
+    where: { userId: user.id },
+    select: {
+      restaurantId: true,
+      role: true,
+      restaurant: { select: { name: true } },
+    },
+  });
+
+  res.json({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    restaurantLinks: restaurantLinks.map((link) => ({
+      restaurantId: link.restaurantId,
+      role: link.role,
+      restaurantName: link.restaurant.name,
+    })),
+  });
 };

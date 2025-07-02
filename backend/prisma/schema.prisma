@@ -104,8 +104,7 @@ enum RestaurantRole {
 enum OrderStatus {
   PENDING
   CONFIRMED
-  COOKING
-  SERVED
+  COMPLETED
   PAID
   CANCELLED
 }

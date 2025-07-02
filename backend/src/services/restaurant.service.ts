@@ -98,9 +98,11 @@ export const getAllRestaurantByUserId = async (userId: string) => {
       },
     });
 
-    return restaurants.map((ele) => ({
-      restaurant: ele.restaurant,
-      role: ele.role,
+    return restaurants.map((item) => ({
+      id: item.restaurant.id,
+      name: item.restaurant.name,
+      createdAt: item.restaurant.createdAt,
+      role: item.role,
     }));
   } catch (error: any) {
     if (error instanceof HttpException) throw error;
@@ -138,6 +140,54 @@ export const deleteRestaurantById = async (restaurantId: string) => {
     if (error instanceof HttpException) throw error;
     throw new InternalServerErrorException(
       "An error occurred while deleting the restaurant."
+    );
+  }
+};
+
+export const editRestaurantName = async (
+  restaurantId: string,
+  newName: string
+) => {
+  if (!restaurantId || restaurantId.trim() === "") {
+    throw new BadRequestException("Restaurant ID is required.");
+  }
+
+  if (!newName || newName.trim() === "") {
+    throw new BadRequestException("New name is required.");
+  }
+
+  try {
+    const existing = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException("Restaurant not found.");
+    }
+
+    const nameExists = await prisma.restaurant.findFirst({
+      where: {
+        name: newName,
+        NOT: { id: restaurantId },
+      },
+    });
+
+    if (nameExists) {
+      throw new ConflictException(
+        "A restaurant with this name already exists. Please choose a different name."
+      );
+    }
+
+    const updated = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: { name: newName },
+    });
+
+    return updated;
+  } catch (error: any) {
+    if (error instanceof HttpException) throw error;
+    throw new InternalServerErrorException(
+      "An error occurred while updating the restaurant name."
     );
   }
 };

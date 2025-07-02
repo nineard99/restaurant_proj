@@ -18,13 +18,13 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-
-app.use('/',[errorHandler],indexRoute)
+app.use('/',indexRoute)
 
 // app.get('/users', async (req, res) => {
 //     const users = await prisma.user.findMany();
 //     res.json(users);
 // });
+app.use(errorHandler);
 
 
 

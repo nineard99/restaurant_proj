@@ -5,33 +5,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-
-
 interface AddMenuComponentProps {
   addMenuSuccess: () => void;
   restaurantId?: string;
 }
 
-export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMenuComponentProps ) {
+export default function AddMenuComponent({ addMenuSuccess, restaurantId }: AddMenuComponentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null); 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim()) return toast.error("กรุณากรอกชื่อเมนู");
     if (!price.trim() || isNaN(Number(price)) || Number(price) < 0) return toast.error("กรุณากรอกราคาที่ถูกต้อง");
+
     setIsLoading(true);
+
     try {
       if (restaurantId) {
-        await createdMenu({
-          restaurantId,
-          name,
-          description,
-          price: Number(price),
-        });
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("description", description);
+        formData.append("price", price);
+        if (imageFile) formData.append("image", imageFile);
+
+        
+        await createdMenu(formData, restaurantId); 
+
         addMenuSuccess();
         toast.success("เพิ่มเมนูสำเร็จ");
         handleClose();
@@ -49,6 +54,7 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
       setName("");
       setDescription("");
       setPrice("");
+      setImageFile(null);
     }
   };
 
@@ -64,7 +70,6 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -73,7 +78,6 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
               onClick={handleClose}
             />
 
-            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -96,6 +100,7 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
                     disabled={isLoading}
                   />
                 </div>
+
                 <div>
                   <label className="block font-medium">รายละเอียด</label>
                   <textarea
@@ -106,7 +111,7 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block font-medium">ราคา (บาท) *</label>
                   <input
@@ -116,6 +121,17 @@ export default function AddMenuComponent( {addMenuSuccess,restaurantId} : AddMen
                     className="w-full p-3 border rounded-lg"
                     min="0"
                     step="0.01"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium">เลือกรูปภาพ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    className="w-full"
                     disabled={isLoading}
                   />
                 </div>

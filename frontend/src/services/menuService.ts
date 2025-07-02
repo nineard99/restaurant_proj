@@ -1,16 +1,12 @@
 import toast from "react-hot-toast"
 import axios from "./axios"
 
-export const createdMenu = async(data : {
-    restaurantId: string,
-    name: string
-    description: string
-    price: number
-}) => {
-    const { restaurantId, name, description, price } = data
-    const dataInfo = { name, description, price }
+export const createdMenu = async (
+    formData: FormData,
+    restaurantId: string
+  ) => {
     try{
-        const res = await axios.post(`${restaurantId}/menu/`,dataInfo)
+        const res = await axios.post(`${restaurantId}/menu/`,formData)
         return res.data
     }catch(err:any){
         toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
