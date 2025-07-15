@@ -10,7 +10,7 @@ if (!secret) throw new Error('JWT_SECRET not defined');
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   // ดึง token จาก cookie ก่อน (ต้องใช้ cookie-parser middleware ใน express app)
-  const tokenFromCookie = req.cookies?.token;
+  const tokenFromCookie = req. cookies?.token;
 
   // ถ้าไม่มีใน cookie ให้ดึงจาก Authorization header
   const authHeader = req.headers.authorization;

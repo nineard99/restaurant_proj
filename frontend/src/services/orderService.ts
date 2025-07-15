@@ -27,10 +27,19 @@ export const createOrder = async (
 
 export const getAllOrder =async (restaurantId:string) => {
   try {
-    const res = await axios.get(`${restaurantId}/order`);
+    const res = await axios.get(`${restaurantId}/order/`);
     return res.data;
   } catch (err: any) {
     toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด");
   }
   
+}
+
+export const updateStatusOrder = async(restaurantId:string , orderId:string , newStatus: string) => {
+  try {
+    const res = await axios.patch(`${restaurantId}/order/${orderId}/status`,{newStatus});
+    return res.data;
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด");
+  }
 }

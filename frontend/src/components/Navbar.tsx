@@ -55,7 +55,7 @@ export default function Navbar() {
                     className="text-gray-900 font-semibold relative group"
                     onClick={() => router.push('/')}
                   >
-                    หน้าหลัก
+                    Home
                     <motion.div
                       className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-900"
                     />
@@ -179,12 +179,12 @@ export default function Navbar() {
                       transition={{ duration: 0.2 }}
                       className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 opacity-0 group-hover:opacity-100 transition-all duration-200"
                     >
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      {/* <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         โปรไฟล์
                       </a>
                       <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         การเงิน
-                      </a>
+                      </a> */}
                       <hr className="my-1" />
                       <button
                         onClick={handleLogout}

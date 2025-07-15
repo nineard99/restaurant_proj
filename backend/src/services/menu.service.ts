@@ -1,3 +1,4 @@
+import { MenuItem } from "@prisma/client";
 import {
   BadRequestException,
   ConflictException,
@@ -6,12 +7,14 @@ import {
 } from "../exceptions/http-exceptions";
 import { HttpException } from "../exceptions/root";
 import prisma from "../prisma/client";
+import { cloudinary } from "../utils/cloudinary";
 
 type Menu = {
   name: string;
   description?: string;
   price: number;
   restaurantId: string;
+  image?: string;
 };
 
 export const createMenuItem = async ({
@@ -19,6 +22,7 @@ export const createMenuItem = async ({
   description,
   price,
   restaurantId,
+  image
 }: Menu) => {
   if (!name || name.trim() === "") {
     throw new BadRequestException("Menu name is required.");
@@ -51,6 +55,7 @@ export const createMenuItem = async ({
         description: description ?? null,
         price: price,
         restaurantId: restaurantId,
+        image: image ?? null
       },
     });
     return menu;
@@ -119,6 +124,8 @@ export const deleteMenuItem = async (menuId: string) => {
     });
     if (!menu) throw new NotFoundException("Menu item not found.");
 
+    await cloudinary.uploader.destroy(`menus/${menuId}`);
+    
     await prisma.menuItem.delete({
       where: { id: menuId },
     });

@@ -35,6 +35,15 @@ export const register = async ({
     throw new BadRequestException('Password is required.');
   }
 
+  // เช็ค regex สำหรับ username และ password
+  const validPattern = /^[a-zA-Z0-9_$%!@#]+$/;
+  if (!validPattern.test(username)) {
+    throw new BadRequestException('Username can only include English letters, numbers and special characters _$%!@#.');
+  }
+  if (!validPattern.test(password)) {
+    throw new BadRequestException('Password can only include English letters, numbers and special characters _$%!@#.');
+  }
+
   // 1. Convert role string to enum
   const roleUpper = role.toUpperCase();
   if (!Object.values(GlobalRole).includes(roleUpper as GlobalRole)) {
@@ -85,6 +94,7 @@ export const register = async ({
     );
   }
 };
+
 
 export const login = async ({ username, password }: LoginInput) => {
   if (!username || username.trim() === '') {

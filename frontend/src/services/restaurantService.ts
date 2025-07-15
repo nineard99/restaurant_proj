@@ -42,3 +42,11 @@ export const deleteRestaurantById = async(restaurantId: string) => {
 
     }
 }
+export const editRestaurantName =async (restaurantId:string, newName : string) => {
+    try{
+        const res = await axios.patch(`/restaurant/${restaurantId}/editName`,{newName})
+        return res.data
+    }catch(err:any){
+        toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด")
+    }
+}
