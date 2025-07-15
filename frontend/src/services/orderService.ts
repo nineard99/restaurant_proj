@@ -27,7 +27,7 @@ export const createOrder = async (
 
 export const getAllOrder =async (restaurantId:string) => {
   try {
-    const res = await axios.get(`${restaurantId}/order`);
+    const res = await axios.get(`${restaurantId}/order/`);
     return res.data;
   } catch (err: any) {
     toast.error(err?.response?.data?.message || err.message || "เกิดข้อผิดพลาด");

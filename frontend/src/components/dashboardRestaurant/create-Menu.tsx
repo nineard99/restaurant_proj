@@ -62,14 +62,14 @@ export default function AddMenuComponent({ addMenuSuccess, restaurantId }: AddMe
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 rounded-xl transition-all"
+        className="w-full bg-gray-900 z-1 hover:bg-gray-800 text-white font-semibold py-4 rounded-xl transition-all"
       >
-        + เพิ่มเมนูใหม่
+        + Add Menu
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
             <motion.div
               className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
               initial={{ opacity: 0 }}

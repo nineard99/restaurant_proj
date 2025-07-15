@@ -40,7 +40,7 @@ export default function MenuList({
         className="bg-white rounded-2xl shadow-lg border border-gray-200 max-h-[80vh] flex flex-col overflow-hidden"
       >
         {/* ส่วนหัวข้อ (Sticky Top) */}
-        <div className="p-6 border-b bg-white sticky top-0 z-10">
+        <div className="p-6 border-b bg-white sticky top-0 z-5">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
               <span>Menu</span>
@@ -70,7 +70,7 @@ export default function MenuList({
         </div>
 
         {/* ส่วนล่าง (Sticky Bottom) */}
-        <div className="p-6 border-t bg-white sticky bottom-0 z-10">
+        <div className="p-6 border-t bg-white sticky bottom-0 z-5">
           <AddMenuComponent
             addMenuSuccess={onAddSuccess}
             restaurantId={restaurantId}
